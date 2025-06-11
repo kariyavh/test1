@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  table { border-collapse: collapse; margin: 0 auto; }
+  td {
+    border: 1px solid #000;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+  }
+  input {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 18px;
+  }
+  /* thick borders between subgrids */
+  td:nth-child(3n) { border-right: 2px solid #000; }
+  tr:nth-child(3n) td { border-bottom: 2px solid #000; }
+  td:first-child { border-left: 2px solid #000; }
+  tr:first-child td { border-top: 2px solid #000; }
+  #checkBtn { margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1>Sudoku</h1>
+<table id="board">
+</table>
+<button id="checkBtn">Check Solution</button>
+<p id="message"></p>
+<script>
+const board = document.getElementById('board');
+for (let r = 0; r < 9; r++) {
+  const row = document.createElement('tr');
+  for (let c = 0; c < 9; c++) {
+    const cell = document.createElement('td');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 1;
+    input.pattern = '[1-9]';
+    cell.appendChild(input);
+    row.appendChild(cell);
+  }
+  board.appendChild(row);
+}
+function getGrid() {
+  const grid = [];
+  const inputs = board.querySelectorAll('input');
+  inputs.forEach((input, i) => {
+    const val = parseInt(input.value, 10);
+    if (!grid[Math.floor(i / 9)]) grid[Math.floor(i / 9)] = [];
+    grid[Math.floor(i / 9)][i % 9] = val || 0;
+  });
+  return grid;
+}
+function isValid(grid) {
+  const set = (arr) => new Set(arr.filter(x => x > 0)).size === arr.filter(x => x > 0).length;
+  for (let i = 0; i < 9; i++) {
+    if (!set(grid[i])) return false; // rows
+    if (!set(grid.map(r => r[i]))) return false; // columns
+    const sr = Math.floor(i / 3) * 3;
+    const sc = (i % 3) * 3;
+    const box = [];
+    for (let r = sr; r < sr + 3; r++)
+      for (let c = sc; c < sc + 3; c++)
+        box.push(grid[r][c]);
+    if (!set(box)) return false; // subgrid
+  }
+  return true;
+}
+document.getElementById('checkBtn').addEventListener('click', () => {
+  const grid = getGrid();
+  const filled = grid.flat().every(n => n > 0);
+  const message = document.getElementById('message');
+  if (filled && isValid(grid)) {
+    message.textContent = 'Congratulations! Sudoku solved.';
+    message.style.color = 'green';
+  } else {
+    message.textContent = 'Not solved yet.';
+    message.style.color = 'red';
+  }
+});
+</script>
+</body>
+</html>
