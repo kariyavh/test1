@@ -22,15 +22,40 @@
   /* thick borders between subgrids */
   td:nth-child(3n) { border-right: 2px solid #000; }
   tr:nth-child(3n) td { border-bottom: 2px solid #000; }
-  td:first-child { border-left: 2px solid #000; }
-  tr:first-child td { border-top: 2px solid #000; }
+  td:first-child { border-left: 4px solid #000; }
+  tr:first-child td { border-top: 4px solid #000; }
+  tr:last-child td { border-bottom: 4px solid #000; }
+  td:last-child { border-right: 4px solid #000; }
+  #controls { margin: 20px auto; text-align: center; }
+  #numpad { margin: 10px auto; text-align: center; }
+  #numpad button { width: 30px; margin: 2px; }
   #checkBtn { margin-top: 20px; }
+  .error { background-color: #fdd; }
 </style>
 </head>
 <body>
 <h1>Sudoku</h1>
-<table id="board">
-</table>
+<div id="controls">
+  <label for="level">Difficulty:</label>
+  <select id="level">
+    <option value="easy">Easy</option>
+    <option value="hard">Hard</option>
+    <option value="extreme">Extreme Hard</option>
+  </select>
+  <button id="newGame">New Game</button>
+</div>
+<table id="board"></table>
+<div id="numpad">
+  <button data-num="1">1</button>
+  <button data-num="2">2</button>
+  <button data-num="3">3</button>
+  <button data-num="4">4</button>
+  <button data-num="5">5</button>
+  <button data-num="6">6</button>
+  <button data-num="7">7</button>
+  <button data-num="8">8</button>
+  <button data-num="9">9</button>
+</div>
 <button id="checkBtn">Check Solution</button>
 <p id="message"></p>
 <script>
@@ -48,6 +73,98 @@ for (let r = 0; r < 9; r++) {
   }
   board.appendChild(row);
 }
+
+const solution = [
+  [5,3,4,6,7,8,9,1,2],
+  [6,7,2,1,9,5,3,4,8],
+  [1,9,8,3,4,2,5,6,7],
+  [8,5,9,7,6,1,4,2,3],
+  [4,2,6,8,5,3,7,9,1],
+  [7,1,3,9,2,4,8,5,6],
+  [9,6,1,5,3,7,2,8,4],
+  [2,8,7,4,1,9,6,3,5],
+  [3,4,5,2,8,6,1,7,9]
+];
+
+let currentPuzzle = [];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function generatePuzzle(level) {
+  const puzzle = solution.map(row => row.slice());
+  const removeMap = { easy: 30, hard: 45, extreme: 55 };
+  const remove = removeMap[level] || 30;
+  const cells = [];
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      cells.push([r, c]);
+  shuffle(cells);
+  for (let i = 0; i < remove; i++) {
+    const [r, c] = cells[i];
+    puzzle[r][c] = 0;
+  }
+  return puzzle;
+}
+
+function setBoard(puzzle) {
+  const inputs = board.querySelectorAll('input');
+  puzzle.flat().forEach((val, idx) => {
+    const input = inputs[idx];
+    if (val) {
+      input.value = val;
+      input.disabled = true;
+    } else {
+      input.value = '';
+      input.disabled = false;
+    }
+    input.classList.remove('error');
+  });
+}
+
+function startGame() {
+  const level = document.getElementById('level').value;
+  currentPuzzle = generatePuzzle(level);
+  setBoard(currentPuzzle);
+  document.getElementById('message').textContent = '';
+}
+
+document.getElementById('newGame').addEventListener('click', startGame);
+
+let activeInput = null;
+board.addEventListener('focusin', e => {
+  if (e.target.tagName === 'INPUT') activeInput = e.target;
+});
+
+document.getElementById('numpad').addEventListener('click', e => {
+  const num = e.target.dataset.num;
+  if (!num || !activeInput || activeInput.disabled) return;
+  activeInput.value = num;
+  activeInput.dispatchEvent(new Event('input'));
+  activeInput.focus();
+});
+
+board.addEventListener('input', e => {
+  if (e.target.tagName !== 'INPUT') return;
+  const inputs = Array.from(board.querySelectorAll('input'));
+  const idx = inputs.indexOf(e.target);
+  const r = Math.floor(idx / 9);
+  const c = idx % 9;
+  const val = parseInt(e.target.value, 10);
+  if (val === solution[r][c]) {
+    e.target.classList.remove('error');
+  } else {
+    if (e.target.value === '') {
+      e.target.classList.remove('error');
+    } else {
+      e.target.classList.add('error');
+    }
+  }
+});
 function getGrid() {
   const grid = [];
   const inputs = board.querySelectorAll('input');
@@ -85,6 +202,8 @@ document.getElementById('checkBtn').addEventListener('click', () => {
     message.style.color = 'red';
   }
 });
+
+startGame();
 </script>
 </body>
 </html>
