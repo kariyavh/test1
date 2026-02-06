@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello Button</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 2rem;
+      }
+
+      button {
+        font-size: 1rem;
+        padding: 0.6rem 1.2rem;
+      }
+
+      #message {
+        margin-top: 1rem;
+        font-size: 1.1rem;
+        color: #1a1a1a;
+      }
+    </style>
+  </head>
+  <body>
+    <button type="button" id="hello-button">Say hello</button>
+    <div id="message" aria-live="polite"></div>
+
+    <script>
+      const helloButton = document.getElementById("hello-button");
+      const message = document.getElementById("message");
+
+      helloButton.addEventListener("click", () => {
+        message.textContent = "Hello!";
+      });
+    </script>
+  </body>
+</html>
